@@ -1,0 +1,87 @@
+import java.util.ArrayList;
+import java.util.List;
+
+class WarehouseLocation {
+    // Function to find the strategic location of the warehouse
+    // given the Cartesian coordinates of factories (Part A)
+    public static int[] findWarehouseLocation(List<int[]> factories) {
+        // Find the median x and y coordinates of the factories
+        int medianX = 0, medianY = 0;
+        for (int[] factory : factories) {
+            medianX += factory[0];
+            medianY += factory[1];
+        }
+        medianX /= factories.size();
+        medianY /= factories.size();
+
+        return new int[]{medianX, medianY};
+    }
+
+    // Function to find the optimum solution in the grid setup (Part B)
+    public static int[] findOptimumSolution(int m, List<int[]> factories, List<int[]> noTrespassCells) {
+        int[][] grid = new int[m][m];
+
+        // Mark the factories on the grid with a value (e.g., 1)
+        for (int[] factory : factories) {
+            int x = factory[0];
+            int y = factory[1];
+            grid[x][y] = 1;
+        }
+
+        // Mark the no trespass cells on the grid with a special value (e.g., -1)
+        for (int[] noTrespassCell : noTrespassCells) {
+            int x = noTrespassCell[0];
+            int y = noTrespassCell[1];
+            grid[x][y] = -1;
+        }
+
+        // Find the median x and y coordinates of the factories
+        int medianX = 0, medianY = 0;
+        for (int[] factory : factories) {
+            medianX += factory[0];
+            medianY += factory[1];
+        }
+        medianX /= factories.size();
+        medianY /= factories.size();
+
+        // Find the nearest cell to the median that is not a no trespass area
+        int[] warehouseLocation = new int[2];
+        int minDistance = Integer.MAX_VALUE;
+        for (int i = medianX - 1; i <= medianX + 1; i++) {
+            for (int j = medianY - 1; j <= medianY + 1; j++) {
+                if (i >= 0 && i < m && j >= 0 && j < m && grid[i][j] != -1) {
+                    int distance = Math.abs(medianX - i) + Math.abs(medianY - j);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        warehouseLocation[0] = i;
+                        warehouseLocation[1] = j;
+                    }
+                }
+            }
+        }
+
+        return warehouseLocation;
+    }
+
+    public static void main(String[] args) {
+        // Example usage for Part A:
+        List<int[]> factories = new ArrayList<>();
+        factories.add(new int[]{2, 3});
+        factories.add(new int[]{5, 1});
+        factories.add(new int[]{4, 6});
+        int[] warehouseLocationA = findWarehouseLocation(factories);
+        System.out.println("Strategic Warehouse Location (Part A): " + warehouseLocationA[0] + ", " + warehouseLocationA[1]);
+
+        // Example usage for Part B:
+        int m = 7; // Grid size
+        List<int[]> factoriesB = new ArrayList<>();
+        factoriesB.add(new int[]{2, 3});
+        factoriesB.add(new int[]{5, 1});
+        factoriesB.add(new int[]{4, 6});
+        List<int[]> noTrespassCells = new ArrayList<>();
+        noTrespassCells.add(new int[]{1, 3});
+        noTrespassCells.add(new int[]{3, 5});
+        int[] warehouseLocationB = findOptimumSolution(m, factoriesB, noTrespassCells);
+        System.out.println("Strategic Warehouse Location (Part B): " + warehouseLocationB[0] + ", " + warehouseLocationB[1]);
+    }
+}

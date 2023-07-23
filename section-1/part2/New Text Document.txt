@@ -1,0 +1,57 @@
+import java.util.BitSet;
+import java.util.concurrent.atomic.AtomicInteger;
+
+class SessionIDGenerator {
+    private final BitSet bitSet;
+    private final AtomicInteger nextAvailableID;
+
+    public SessionIDGenerator(int maxUsers) {
+        // The BitSet will represent the availability of IDs.
+        // maxUsers represents the maximum number of users the system can handle concurrently.
+        this.bitSet = new BitSet(maxUsers);
+        this.nextAvailableID = new AtomicInteger(0);
+    }
+
+    public int generateSessionID() {
+        // Find the next available ID using the BitSet.
+        int newID = nextAvailableID.getAndIncrement();
+        while (newID < bitSet.size() && !bitSet.get(newID)) {
+            newID = nextAvailableID.getAndIncrement();
+        }
+
+        if (newID >= bitSet.size()) {
+            // No available ID found within the BitSet size, can't generate a new session ID.
+            throw new IllegalStateException("System capacity reached, cannot generate new session ID.");
+        }
+
+        // Mark the ID as active (set the corresponding bit to 1) and return the new session ID.
+        bitSet.set(newID);
+        return newID;
+    }
+
+    public void releaseSessionID(int id) {
+        // Release the session ID and mark it as available (set the corresponding bit to 0).
+        if (id >= 0 && id < bitSet.size()) {
+            bitSet.clear(id);
+        } else {
+            throw new IllegalArgumentException("Invalid session ID.");
+        }
+    }
+
+    public static void main(String[] args) {
+        // Example usage:
+        int maxUsers = 1000000; // Adjust this value based on your system's capacity.
+        SessionIDGenerator idGenerator = new SessionIDGenerator(maxUsers);
+
+        // Generate and use a new session ID.
+        int sessionID1 = idGenerator.generateSessionID();
+        System.out.println("Generated Session ID: " + sessionID1);
+
+        // Release the session ID when the user session expires.
+        idGenerator.releaseSessionID(sessionID1);
+
+        // Generate and use another session ID (the previously released one will be reused).
+        int sessionID2 = idGenerator.generateSessionID();
+        System.out.println("Generated Session ID: " + sessionID2);
+    }
+}
